@@ -21,6 +21,7 @@ import ShopPage from './pages/ShopPage';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import BecomeSeller from './pages/BecomeSeller';
 
 export default function App() {
   const { fetchMe, user } = useAuthStore();
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="/shops/:id" element={<Layout><ShopPage /></Layout>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/become-seller" element={<Layout><BecomeSeller /></Layout>} />
         <Route path="/cart" element={<Layout><PrivateRoute><Cart /></PrivateRoute></Layout>} />
         <Route path="/favorites" element={<Layout><PrivateRoute><Favorites /></PrivateRoute></Layout>} />
         <Route path="/orders" element={<Layout><PrivateRoute><Orders /></PrivateRoute></Layout>} />
