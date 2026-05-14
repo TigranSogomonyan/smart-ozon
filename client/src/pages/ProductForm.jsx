@@ -1,25 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
-import useAuthStore from '../stores/authStore';
+import api from '../api/axios';
 
 export default function ProductForm() {
   const { id } = useParams();
   const isEdit = Boolean(id);
   const navigate = useNavigate();
-  const { accessToken } = useAuthStore();
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({ name: '', description: '', price: '', weight: '', category_id: '' });
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const headers = { Authorization: `Bearer ${accessToken}` };
 
   useEffect(() => {
-    axios.get('/api/categories').then(r => setCategories(r.data));
+    api.get('/categories').then(r => setCategories(r.data)).catch(() => {});
     if (isEdit) {
-      axios.get(`/api/products/${id}`, { headers, withCredentials: true }).then(r => {
+      api.get(`/products/${id}`).then(r => {
         const p = r.data;
         setForm({ name: p.name || '', description: p.description || '', price: p.price || '', weight: p.weight || '', category_id: p.category_id || '' });
         if (p.photo_url) setPhotoPreview(p.photo_url);
@@ -47,11 +44,10 @@ export default function ProductForm() {
       Object.entries(form).forEach(([k, v]) => { if (v) fd.append(k, v); });
       if (photoFile) fd.append('photo', photoFile);
 
-      const config = { headers: { ...headers, 'Content-Type': 'multipart/form-data' }, withCredentials: true };
       if (isEdit) {
-        await axios.put(`/api/products/${id}`, fd, config);
+        await api.put(`/products/${id}`, fd);
       } else {
-        await axios.post('/api/products', fd, config);
+        await api.post('/products', fd);
       }
       navigate('/my-shop');
     } catch (err) {

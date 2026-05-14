@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-const useAuthStore = create((set, get) => ({
+const BASE = import.meta.env.VITE_API_URL || '';
+
+const useAuthStore = create((set) => ({
   user: null,
   accessToken: null,
   loading: true,
@@ -9,29 +11,29 @@ const useAuthStore = create((set, get) => ({
   setAccessToken: (token) => set({ accessToken: token }),
 
   login: async (email, password) => {
-    const { data } = await axios.post('/api/auth/login', { email, password }, { withCredentials: true });
+    const { data } = await axios.post(`${BASE}/api/auth/login`, { email, password }, { withCredentials: true });
     set({ user: data.user, accessToken: data.accessToken });
     return data;
   },
 
   register: async (formData) => {
-    const { data } = await axios.post('/api/auth/register', formData, { withCredentials: true });
+    const { data } = await axios.post(`${BASE}/api/auth/register`, formData, { withCredentials: true });
     set({ user: data.user, accessToken: data.accessToken });
     return data;
   },
 
   logout: async () => {
     try {
-      await axios.post('/api/auth/logout', {}, { withCredentials: true });
+      await axios.post(`${BASE}/api/auth/logout`, {}, { withCredentials: true });
     } catch {}
     set({ user: null, accessToken: null });
   },
 
   fetchMe: async () => {
     try {
-      const { data: refreshData } = await axios.post('/api/auth/refresh', {}, { withCredentials: true });
+      const { data: refreshData } = await axios.post(`${BASE}/api/auth/refresh`, {}, { withCredentials: true });
       set({ accessToken: refreshData.accessToken });
-      const { data: user } = await axios.get('/api/users/me', {
+      const { data: user } = await axios.get(`${BASE}/api/users/me`, {
         headers: { Authorization: `Bearer ${refreshData.accessToken}` },
         withCredentials: true,
       });

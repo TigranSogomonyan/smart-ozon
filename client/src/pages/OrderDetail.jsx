@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
-import useAuthStore from '../stores/authStore';
+import api from '../api/axios';
 
 const statusMap = {
   pending: { label: 'Ожидает оплаты', cls: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30' },
@@ -16,41 +15,35 @@ export default function OrderDetail() {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState('');
-  const { accessToken } = useAuthStore();
-
-  async function handlePay() {
-    setPayError('');
-    setPaying(true);
-    try {
-      const { data } = await axios.post('/api/payments/create-checkout', { order_id: id }, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        withCredentials: true,
-      });
-      window.location.href = data.url;
-    } catch (err) {
-      setPayError(err.response?.data?.error || 'Ошибка при создании сессии оплаты');
-      setPaying(false);
-    }
-  }
 
   const success = searchParams.get('success');
   const cancelled = searchParams.get('cancelled');
 
   useEffect(() => {
-    const headers = { Authorization: `Bearer ${accessToken}` };
     const load = async () => {
       try {
-        // If returning from successful Stripe payment, verify and mark as paid
         if (success) {
-          await axios.post(`/api/orders/${id}/verify-payment`, {}, { headers, withCredentials: true }).catch(() => {});
+          await api.post(`/orders/${id}/verify-payment`).catch(() => {});
         }
-        const r = await axios.get(`/api/orders/${id}`, { headers, withCredentials: true });
+        const r = await api.get(`/orders/${id}`);
         setOrder(r.data);
       } catch {}
       setLoading(false);
     };
     load();
   }, [id]);
+
+  async function handlePay() {
+    setPayError('');
+    setPaying(true);
+    try {
+      const { data } = await api.post('/payments/create-checkout', { order_id: id });
+      window.location.href = data.url;
+    } catch (err) {
+      setPayError(err.response?.data?.error || 'Ошибка при создании сессии оплаты');
+      setPaying(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -119,7 +112,6 @@ export default function OrderDetail() {
         )}
       </div>
 
-      {/* Items */}
       <div className="bg-navy-700 rounded-xl border border-white/5 overflow-hidden mb-6">
         <div className="px-5 py-3 border-b border-white/5">
           <h3 className="font-semibold text-white">Состав заказа</h3>

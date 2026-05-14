@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
-import useAuthStore from '../stores/authStore';
+import http from '../api/axios';
 
 const TABS = ['Заявки продавцов', 'Пользователи', 'Категории', 'Заказы', 'Товары'];
 
@@ -25,23 +24,21 @@ function Table({ children }) {
 }
 
 export default function Admin() {
-  const { accessToken } = useAuthStore();
   const [tab, setTab] = useState('Заявки продавцов');
   const [data, setData] = useState({ requests: [], users: [], categories: [], orders: [], products: [] });
   const [catForm, setCatForm] = useState({ name: '', color: '#6C63FF' });
   const [editCat, setEditCat] = useState(null);
   const [loading, setLoading] = useState(false);
-  const headers = { Authorization: `Bearer ${accessToken}` };
 
   async function load() {
     setLoading(true);
     try {
       const [req, usr, cat, ord, prd] = await Promise.all([
-        axios.get('/api/admin/seller-requests', { headers, withCredentials: true }),
-        axios.get('/api/admin/users', { headers, withCredentials: true }),
-        axios.get('/api/categories'),
-        axios.get('/api/admin/orders', { headers, withCredentials: true }),
-        axios.get('/api/admin/products', { headers, withCredentials: true }),
+        http.get('/admin/seller-requests'),
+        http.get('/admin/users'),
+        http.get('/categories'),
+        http.get('/admin/orders'),
+        http.get('/admin/products'),
       ]);
       setData({ requests: req.data, users: usr.data, categories: cat.data, orders: ord.data, products: prd.data });
     } catch {}
@@ -50,42 +47,40 @@ export default function Admin() {
 
   useEffect(() => { load(); }, []);
 
-  const api = (method, url, body) => axios[method](url, body, { headers, withCredentials: true });
-
   async function approveRequest(id) {
-    await api('put', `/api/admin/seller-requests/${id}/approve`);
+    await http.put(`/admin/seller-requests/${id}/approve`);
     setData(d => ({ ...d, requests: d.requests.filter(r => r.id !== id) }));
   }
 
   async function rejectRequest(id) {
-    await api('put', `/api/admin/seller-requests/${id}/reject`);
+    await http.put(`/admin/seller-requests/${id}/reject`);
     setData(d => ({ ...d, requests: d.requests.filter(r => r.id !== id) }));
   }
 
   async function changeRole(id, role) {
-    await api('put', `/api/admin/users/${id}/role`, { role });
+    await http.put(`/admin/users/${id}/role`, { role });
     setData(d => ({ ...d, users: d.users.map(u => u.id === id ? { ...u, role } : u) }));
   }
 
   async function changeOrderStatus(id, status) {
-    await api('put', `/api/admin/orders/${id}/status`, { status });
+    await http.put(`/admin/orders/${id}/status`, { status });
     setData(d => ({ ...d, orders: d.orders.map(o => o.id === id ? { ...o, status } : o) }));
   }
 
   async function deleteProduct(id) {
     if (!confirm('Удалить товар?')) return;
-    await axios.delete(`/api/products/${id}`, { headers, withCredentials: true });
+    await http.delete(`/products/${id}`);
     setData(d => ({ ...d, products: d.products.filter(p => p.id !== id) }));
   }
 
   async function saveCategory(e) {
     e.preventDefault();
     if (editCat) {
-      const res = await api('put', `/api/categories/${editCat.id}`, { name: catForm.name, color: catForm.color });
+      const res = await http.put(`/categories/${editCat.id}`, { name: catForm.name, color: catForm.color });
       setData(d => ({ ...d, categories: d.categories.map(c => c.id === editCat.id ? res.data : c) }));
       setEditCat(null);
     } else {
-      const res = await axios.post('/api/categories', catForm, { headers, withCredentials: true });
+      const res = await http.post('/categories', catForm);
       setData(d => ({ ...d, categories: [...d.categories, res.data] }));
     }
     setCatForm({ name: '', color: '#6C63FF' });
@@ -93,7 +88,7 @@ export default function Admin() {
 
   async function deleteCategory(id) {
     if (!confirm('Удалить категорию?')) return;
-    await axios.delete(`/api/categories/${id}`, { headers, withCredentials: true });
+    await http.delete(`/categories/${id}`);
     setData(d => ({ ...d, categories: d.categories.filter(c => c.id !== id) }));
   }
 
@@ -101,7 +96,6 @@ export default function Admin() {
     <div className="page-fade max-w-6xl mx-auto px-6 py-10">
       <h1 className="font-heading text-3xl font-bold text-white mb-6">Панель администратора</h1>
 
-      {/* Tabs */}
       <div className="flex border-b border-white/10 mb-8 gap-1 overflow-x-auto">
         {TABS.map(t => (
           <button key={t} onClick={() => setTab(t)}
@@ -116,7 +110,6 @@ export default function Admin() {
 
       {loading && <div className="text-gray-500 text-sm mb-4">Загрузка...</div>}
 
-      {/* Seller requests */}
       {tab === 'Заявки продавцов' && (
         data.requests.length === 0 ? (
           <div className="text-center py-16 text-gray-500"><div className="text-4xl mb-3">✅</div><p>Новых заявок нет</p></div>
@@ -144,7 +137,6 @@ export default function Admin() {
         )
       )}
 
-      {/* Users */}
       {tab === 'Пользователи' && (
         <Table>
           <thead><tr className="border-b border-white/5 text-gray-500 text-left">
@@ -171,7 +163,6 @@ export default function Admin() {
         </Table>
       )}
 
-      {/* Categories */}
       {tab === 'Категории' && (
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1">
@@ -225,7 +216,6 @@ export default function Admin() {
         </div>
       )}
 
-      {/* Orders */}
       {tab === 'Заказы' && (
         <Table>
           <thead><tr className="border-b border-white/5 text-gray-500 text-left">
@@ -254,7 +244,6 @@ export default function Admin() {
         </Table>
       )}
 
-      {/* Products */}
       {tab === 'Товары' && (
         <Table>
           <thead><tr className="border-b border-white/5 text-gray-500 text-left">

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import ProductCard from '../components/ProductCard';
 
 function Skeleton() {
@@ -34,7 +34,7 @@ export default function Catalog() {
   const [searchInput, setSearchInput] = useState(search);
 
   useEffect(() => {
-    axios.get('/api/categories').then(r => setCategories(r.data));
+    api.get('/categories').then(r => setCategories(r.data)).catch(() => {});
   }, []);
 
   const fetchProducts = useCallback(async () => {
@@ -46,7 +46,7 @@ export default function Catalog() {
       if (sort) query.set('sort', sort);
       query.set('page', page);
       query.set('limit', 20);
-      const { data } = await axios.get(`/api/products?${query}`);
+      const { data } = await api.get(`/products?${query}`);
       let prods = data.products;
       if (minPrice) prods = prods.filter(p => Number(p.price) >= Number(minPrice));
       if (maxPrice) prods = prods.filter(p => Number(p.price) <= Number(maxPrice));

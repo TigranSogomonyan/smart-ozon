@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import ProductCard from '../components/ProductCard';
 
 function Skeleton() {
@@ -23,8 +23,8 @@ export default function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get('/api/products/top').then(r => { setTopProducts(r.data); setLoadingProducts(false); }).catch(() => setLoadingProducts(false));
-    axios.get('/api/categories').then(r => setCategories(r.data));
+    api.get('/products/top').then(r => { setTopProducts(r.data); setLoadingProducts(false); }).catch(() => setLoadingProducts(false));
+    api.get('/categories').then(r => setCategories(r.data)).catch(() => {});
   }, []);
 
   return (

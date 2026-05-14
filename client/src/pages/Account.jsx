@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import useAuthStore from '../stores/authStore';
 
 const sellerRequestInfo = {
@@ -10,7 +10,7 @@ const sellerRequestInfo = {
 };
 
 export default function Account() {
-  const { user, accessToken, updateUser } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const [profile, setProfile] = useState({ first_name: '', last_name: '', birth_date: '', gender: '' });
   const [profileMsg, setProfileMsg] = useState('');
   const [profileErr, setProfileErr] = useState('');
@@ -19,8 +19,6 @@ export default function Account() {
   const [pwErr, setPwErr] = useState('');
   const [requesting, setRequesting] = useState(false);
   const [sellerReq, setSellerReq] = useState(user?.seller_request || 'none');
-
-  const headers = { Authorization: `Bearer ${accessToken}` };
 
   useEffect(() => {
     if (user) {
@@ -38,7 +36,7 @@ export default function Account() {
     e.preventDefault();
     setProfileMsg(''); setProfileErr('');
     try {
-      const { data } = await axios.put('/api/users/me', profile, { headers, withCredentials: true });
+      const { data } = await api.put('/users/me', profile);
       updateUser(data);
       setProfileMsg('Профиль сохранён!');
       setTimeout(() => setProfileMsg(''), 3000);
@@ -53,7 +51,7 @@ export default function Account() {
     if (pwForm.new_password !== pwForm.confirm) { setPwErr('Пароли не совпадают'); return; }
     if (pwForm.new_password.length < 6) { setPwErr('Минимум 6 символов'); return; }
     try {
-      await axios.post('/api/auth/change-password', { old_password: pwForm.old_password, new_password: pwForm.new_password }, { headers, withCredentials: true });
+      await api.post('/auth/change-password', { old_password: pwForm.old_password, new_password: pwForm.new_password });
       setPwMsg('Пароль изменён!');
       setPwForm({ old_password: '', new_password: '', confirm: '' });
       setTimeout(() => setPwMsg(''), 3000);
@@ -65,7 +63,7 @@ export default function Account() {
   async function requestSeller() {
     setRequesting(true);
     try {
-      await axios.post('/api/users/me/request-seller', {}, { headers, withCredentials: true });
+      await api.post('/users/me/request-seller');
       setSellerReq('pending');
       updateUser({ seller_request: 'pending' });
     } catch (err) {
@@ -80,7 +78,6 @@ export default function Account() {
     <div className="page-fade max-w-2xl mx-auto px-6 py-10">
       <h1 className="font-heading text-3xl font-bold text-white mb-8">Личный кабинет</h1>
 
-      {/* Profile */}
       <div className="bg-navy-700 rounded-2xl p-6 border border-white/5 mb-6">
         <h2 className="font-heading text-lg font-bold text-white mb-5">Личные данные</h2>
         <form onSubmit={handleProfileSave} className="space-y-4">
@@ -119,7 +116,6 @@ export default function Account() {
         </form>
       </div>
 
-      {/* Change password */}
       <div className="bg-navy-700 rounded-2xl p-6 border border-white/5 mb-6">
         <h2 className="font-heading text-lg font-bold text-white mb-5">Смена пароля</h2>
         <form onSubmit={handlePasswordChange} className="space-y-4">
@@ -143,7 +139,6 @@ export default function Account() {
         </form>
       </div>
 
-      {/* Seller request */}
       {user?.role === 'user' && (
         <div className="bg-navy-700 rounded-2xl p-6 border border-white/5">
           <h2 className="font-heading text-lg font-bold text-white mb-3">Стать продавцом</h2>

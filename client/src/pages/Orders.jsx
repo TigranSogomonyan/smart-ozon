@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
-import useAuthStore from '../stores/authStore';
+import api from '../api/axios';
 
 const statusMap = {
   pending: { label: 'Ожидает оплаты', cls: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30' },
@@ -12,17 +11,16 @@ const statusMap = {
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { accessToken } = useAuthStore();
 
   useEffect(() => {
-    axios.get('/api/orders', { headers: { Authorization: `Bearer ${accessToken}` }, withCredentials: true })
+    api.get('/orders')
       .then(r => { setOrders(r.data); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
 
   async function handleCancel(id) {
     try {
-      await axios.put(`/api/orders/${id}/cancel`, {}, { headers: { Authorization: `Bearer ${accessToken}` }, withCredentials: true });
+      await api.put(`/orders/${id}/cancel`);
       setOrders(os => os.map(o => o.id === id ? { ...o, status: 'cancelled' } : o));
     } catch {}
   }

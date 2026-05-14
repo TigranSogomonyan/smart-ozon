@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import useAuthStore from '../stores/authStore';
 import useCartStore from '../stores/cartStore';
 import useFavoritesStore from '../stores/favoritesStore';
@@ -18,7 +18,7 @@ export default function ProductPage() {
 
   useEffect(() => {
     setLoading(true);
-    axios.get(`/api/products/${id}`)
+    api.get(`/products/${id}`)
       .then(r => { setProduct(r.data); setLoading(false); })
       .catch(() => setLoading(false));
   }, [id]);
@@ -70,7 +70,6 @@ export default function ProductPage() {
 
   return (
     <div className="page-fade max-w-5xl mx-auto px-6 py-10">
-      {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
         <Link to="/" className="hover:text-white">Главная</Link>
         <span>/</span>
@@ -80,7 +79,6 @@ export default function ProductPage() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-10">
-        {/* Image */}
         <div className="relative">
           <div className="rounded-2xl overflow-hidden bg-navy-700 border border-white/5 aspect-square">
             {product.photo_url ? (
@@ -96,7 +94,6 @@ export default function ProductPage() {
           </div>
         </div>
 
-        {/* Info */}
         <div className="flex flex-col gap-5">
           {cat && (
             <span className="inline-block px-3 py-1 rounded-full text-sm font-medium self-start" style={{ backgroundColor: `${cat.color}22`, color: cat.color }}>
@@ -115,7 +112,6 @@ export default function ProductPage() {
             <p className="text-gray-400 leading-relaxed text-sm">{product.description}</p>
           )}
 
-          {/* Qty + Add */}
           <div className="flex items-center gap-3">
             <div className="flex items-center bg-navy-600 rounded-lg border border-white/10">
               <button onClick={() => setQty(q => Math.max(1, q - 1))} className="px-3 py-2 text-gray-400 hover:text-white transition-colors text-lg">−</button>
@@ -144,7 +140,6 @@ export default function ProductPage() {
             </button>
           </div>
 
-          {/* Shop */}
           {product.shop && (
             <Link
               to={`/shops/${product.shop.id}`}

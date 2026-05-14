@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import ProductCard from '../components/ProductCard';
 
 export default function ShopPage() {
@@ -9,7 +9,7 @@ export default function ShopPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get(`/api/shops/${id}`)
+    api.get(`/shops/${id}`)
       .then(r => { setShop(r.data); setLoading(false); })
       .catch(() => setLoading(false));
   }, [id]);
@@ -37,7 +37,6 @@ export default function ShopPage() {
 
   return (
     <div className="page-fade max-w-6xl mx-auto px-6 py-10">
-      {/* Shop header */}
       <div className="bg-navy-700 rounded-2xl p-8 border border-white/5 mb-10 flex flex-col sm:flex-row items-center sm:items-start gap-6">
         <div className="w-20 h-20 rounded-2xl bg-navy-500 overflow-hidden shrink-0 flex items-center justify-center text-3xl font-bold text-white/30">
           {shop.logo_url ? (
@@ -51,7 +50,6 @@ export default function ShopPage() {
         </div>
       </div>
 
-      {/* Products */}
       <h2 className="font-heading text-xl font-bold text-white mb-5">Товары магазина</h2>
       {shop.products?.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

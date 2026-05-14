@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import useAuthStore from '../stores/authStore';
+import api from '../api/axios';
 
 const tabs = ['Магазин', 'Товары', 'Заказы'];
 const statusMap = { pending: 'Ожидает', paid: 'Оплачен', cancelled: 'Отменён' };
@@ -12,7 +11,6 @@ const statusCls = {
 };
 
 export default function MyShop() {
-  const { user, accessToken } = useAuthStore();
   const [tab, setTab] = useState('Магазин');
   const [shop, setShop] = useState(null);
   const [products, setProducts] = useState([]);
@@ -23,23 +21,21 @@ export default function MyShop() {
   const [shopMsg, setShopMsg] = useState('');
   const [shopErr, setShopErr] = useState('');
   const navigate = useNavigate();
-  const headers = { Authorization: `Bearer ${accessToken}` };
 
   async function loadData() {
     setLoading(true);
     try {
-      const meRes = await axios.get('/api/users/me', { headers, withCredentials: true });
+      const meRes = await api.get('/users/me');
       if (meRes.data.shop) {
-        const shopRes = await axios.get(`/api/shops/${meRes.data.shop?.id || ''}`, { headers, withCredentials: true })
-          .catch(() => null);
+        const shopRes = await api.get(`/shops/${meRes.data.shop?.id || ''}`).catch(() => null);
         if (shopRes) {
           setShop(shopRes.data);
           setShopForm({ name: shopRes.data.name || '', description: shopRes.data.description || '' });
         }
       }
       const [prodsRes, ordersRes] = await Promise.all([
-        axios.get('/api/seller/products', { headers, withCredentials: true }),
-        axios.get('/api/seller/orders', { headers, withCredentials: true }),
+        api.get('/seller/products'),
+        api.get('/seller/orders'),
       ]);
       setProducts(prodsRes.data);
       setOrders(ordersRes.data);
@@ -60,9 +56,9 @@ export default function MyShop() {
 
       let res;
       if (shop) {
-        res = await axios.put(`/api/shops/${shop.id}`, fd, { headers: { ...headers, 'Content-Type': 'multipart/form-data' }, withCredentials: true });
+        res = await api.put(`/shops/${shop.id}`, fd);
       } else {
-        res = await axios.post('/api/shops', fd, { headers: { ...headers, 'Content-Type': 'multipart/form-data' }, withCredentials: true });
+        res = await api.post('/shops', fd);
       }
       setShop(res.data);
       setShopMsg('Магазин сохранён!');
@@ -75,7 +71,7 @@ export default function MyShop() {
   async function handleDeleteProduct(id) {
     if (!confirm('Удалить товар?')) return;
     try {
-      await axios.delete(`/api/products/${id}`, { headers, withCredentials: true });
+      await api.delete(`/products/${id}`);
       setProducts(ps => ps.filter(p => p.id !== id));
     } catch {}
   }
@@ -93,7 +89,6 @@ export default function MyShop() {
     <div className="page-fade max-w-5xl mx-auto px-6 py-10">
       <h1 className="font-heading text-3xl font-bold text-white mb-6">Мой магазин</h1>
 
-      {/* Tabs */}
       <div className="flex border-b border-white/10 mb-8 gap-1">
         {tabs.map(t => (
           <button
@@ -106,7 +101,6 @@ export default function MyShop() {
         ))}
       </div>
 
-      {/* Shop tab */}
       {tab === 'Магазин' && (
         <div className="bg-navy-700 rounded-2xl p-6 border border-white/5 max-w-lg">
           <h2 className="font-heading text-lg font-bold text-white mb-5">{shop ? 'Информация о магазине' : 'Создать магазин'}</h2>
@@ -131,7 +125,6 @@ export default function MyShop() {
         </div>
       )}
 
-      {/* Products tab */}
       {tab === 'Товары' && (
         <div>
           <div className="flex justify-between items-center mb-5">
@@ -186,7 +179,6 @@ export default function MyShop() {
         </div>
       )}
 
-      {/* Orders tab */}
       {tab === 'Заказы' && (
         <div>
           <p className="text-gray-400 text-sm mb-5">{orders.length} заказов с вашими товарами</p>
