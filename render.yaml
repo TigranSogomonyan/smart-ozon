@@ -1,7 +1,6 @@
 databases:
   - name: smart-ozon-db
     databaseName: smart_ozon
-    user: postgres
     plan: free
 
 services:
