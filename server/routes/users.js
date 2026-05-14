@@ -1,11 +1,12 @@
 const router = require('express').Router();
-const { User } = require('../models');
+const { User, Shop } = require('../models');
 const auth = require('../middleware/auth');
 
 router.get('/me', auth, async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
       attributes: { exclude: ['password_hash'] },
+      include: [{ model: Shop, as: 'shop', attributes: ['id', 'name', 'logo_url'] }],
     });
     if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
     res.json(user);
