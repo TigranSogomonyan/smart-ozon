@@ -24,18 +24,18 @@ import Register from './pages/Register';
 import BecomeSeller from './pages/BecomeSeller';
 
 export default function App() {
-  const { fetchMe, user } = useAuthStore();
+  const { fetchMe, user, loading } = useAuthStore();
   const { fetchCart } = useCartStore();
   const { fetchFavorites } = useFavoritesStore();
 
   useEffect(() => { fetchMe(); }, []);
 
   useEffect(() => {
-    if (user) {
+    if (user && !loading) {
       fetchCart();
       fetchFavorites();
     }
-  }, [user?.id]);
+  }, [user?.id, loading]);
 
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
