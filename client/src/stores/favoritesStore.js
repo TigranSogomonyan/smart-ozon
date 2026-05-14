@@ -7,7 +7,7 @@ const useFavoritesStore = create((set, get) => ({
   fetchFavorites: async () => {
     try {
       const { data } = await api.get('/favorites');
-      set({ items: data });
+      set({ items: Array.isArray(data) ? data : [] });
     } catch {}
   },
 

@@ -32,11 +32,13 @@ const useAuthStore = create((set) => ({
   fetchMe: async () => {
     try {
       const { data: refreshData } = await axios.post(`${BASE}/api/auth/refresh`, {}, { withCredentials: true });
+      if (!refreshData?.accessToken) throw new Error('no token');
       set({ accessToken: refreshData.accessToken });
       const { data: user } = await axios.get(`${BASE}/api/users/me`, {
         headers: { Authorization: `Bearer ${refreshData.accessToken}` },
         withCredentials: true,
       });
+      if (!user?.id) throw new Error('no user');
       set({ user, loading: false });
     } catch {
       set({ loading: false });

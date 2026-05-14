@@ -23,8 +23,8 @@ export default function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.get('/products/top').then(r => { setTopProducts(r.data); setLoadingProducts(false); }).catch(() => setLoadingProducts(false));
-    api.get('/categories').then(r => setCategories(r.data)).catch(() => {});
+    api.get('/products/top').then(r => { if (Array.isArray(r.data)) setTopProducts(r.data); setLoadingProducts(false); }).catch(() => setLoadingProducts(false));
+    api.get('/categories').then(r => { if (Array.isArray(r.data)) setCategories(r.data); }).catch(() => {});
   }, []);
 
   return (

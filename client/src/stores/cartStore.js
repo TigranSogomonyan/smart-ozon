@@ -9,7 +9,7 @@ const useCartStore = create((set, get) => ({
     set({ loading: true });
     try {
       const { data } = await api.get('/cart');
-      set({ items: data });
+      set({ items: Array.isArray(data) ? data : [] });
     } catch {}
     set({ loading: false });
   },

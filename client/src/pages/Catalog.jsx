@@ -34,7 +34,7 @@ export default function Catalog() {
   const [searchInput, setSearchInput] = useState(search);
 
   useEffect(() => {
-    api.get('/categories').then(r => setCategories(r.data)).catch(() => {});
+    api.get('/categories').then(r => { if (Array.isArray(r.data)) setCategories(r.data); }).catch(() => {});
   }, []);
 
   const fetchProducts = useCallback(async () => {
@@ -47,7 +47,7 @@ export default function Catalog() {
       query.set('page', page);
       query.set('limit', 20);
       const { data } = await api.get(`/products?${query}`);
-      let prods = data.products;
+      let prods = Array.isArray(data.products) ? data.products : [];
       if (minPrice) prods = prods.filter(p => Number(p.price) >= Number(minPrice));
       if (maxPrice) prods = prods.filter(p => Number(p.price) <= Number(maxPrice));
       setProducts(prods);
