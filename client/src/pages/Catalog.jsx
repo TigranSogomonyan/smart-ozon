@@ -1,0 +1,199 @@
+import { useEffect, useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import axios from 'axios';
+import ProductCard from '../components/ProductCard';
+
+function Skeleton() {
+  return (
+    <div className="bg-navy-700 rounded-xl animate-pulse overflow-hidden">
+      <div className="aspect-square bg-navy-500" />
+      <div className="p-3 space-y-2">
+        <div className="h-3 bg-navy-500 rounded w-1/3" />
+        <div className="h-4 bg-navy-500 rounded w-3/4" />
+        <div className="h-5 bg-navy-500 rounded w-1/2 mt-2" />
+      </div>
+    </div>
+  );
+}
+
+export default function Catalog() {
+  const [params, setParams] = useSearchParams();
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const search = params.get('search') || '';
+  const category_id = params.get('category_id') || '';
+  const sort = params.get('sort') || 'newest';
+  const page = parseInt(params.get('page') || '1');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [searchInput, setSearchInput] = useState(search);
+
+  useEffect(() => {
+    axios.get('/api/categories').then(r => setCategories(r.data));
+  }, []);
+
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const query = new URLSearchParams();
+      if (search) query.set('search', search);
+      if (category_id) query.set('category_id', category_id);
+      if (sort) query.set('sort', sort);
+      query.set('page', page);
+      query.set('limit', 20);
+      const { data } = await axios.get(`/api/products?${query}`);
+      let prods = data.products;
+      if (minPrice) prods = prods.filter(p => Number(p.price) >= Number(minPrice));
+      if (maxPrice) prods = prods.filter(p => Number(p.price) <= Number(maxPrice));
+      setProducts(prods);
+      setTotal(data.total);
+      setTotalPages(data.totalPages);
+    } catch {}
+    setLoading(false);
+  }, [search, category_id, sort, page, minPrice, maxPrice]);
+
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
+
+  function setParam(key, val) {
+    const next = new URLSearchParams(params);
+    if (val) next.set(key, val); else next.delete(key);
+    next.delete('page');
+    setParams(next);
+  }
+
+  function handleSearch(e) {
+    e.preventDefault();
+    setParam('search', searchInput);
+  }
+
+  function toggleCategory(id) {
+    setParam('category_id', category_id === id ? '' : id);
+  }
+
+  const sortOptions = [
+    { value: 'newest', label: 'Новинки' },
+    { value: 'price_asc', label: 'Цена: по возрастанию' },
+    { value: 'price_desc', label: 'Цена: по убыванию' },
+  ];
+
+  return (
+    <div className="page-fade max-w-7xl mx-auto px-4 py-8">
+      <div className="flex items-center gap-4 mb-6 flex-wrap">
+        <h1 className="font-heading text-3xl font-bold text-white">Каталог</h1>
+        <span className="text-gray-500 text-sm">Найдено: {total} товаров</span>
+        <button onClick={() => setSidebarOpen(v => !v)} className="md:hidden ml-auto btn-outline py-2 px-4 text-sm">
+          Фильтры
+        </button>
+      </div>
+
+      <div className="flex gap-6">
+        {/* Sidebar */}
+        <aside className={`w-64 shrink-0 ${sidebarOpen ? 'block' : 'hidden'} md:block`}>
+          <div className="bg-navy-700 rounded-xl p-5 border border-white/5 sticky top-24">
+            <h3 className="font-heading font-semibold text-white mb-4">Категории</h3>
+            <div className="space-y-2 mb-6">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input
+                  type="radio" name="cat" checked={!category_id}
+                  onChange={() => setParam('category_id', '')}
+                  className="accent-coral-500"
+                />
+                <span className="text-sm text-gray-300 group-hover:text-white">Все категории</span>
+              </label>
+              {categories.map(cat => (
+                <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
+                  <input
+                    type="radio" name="cat" checked={category_id === cat.id}
+                    onChange={() => toggleCategory(cat.id)}
+                    className="accent-coral-500"
+                  />
+                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                  <span className="text-sm text-gray-300 group-hover:text-white">{cat.name}</span>
+                </label>
+              ))}
+            </div>
+
+            <h3 className="font-heading font-semibold text-white mb-3">Цена (₽)</h3>
+            <div className="flex gap-2 items-center">
+              <input type="number" placeholder="От" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="input-dark text-sm py-2 px-3" />
+              <span className="text-gray-500">—</span>
+              <input type="number" placeholder="До" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="input-dark text-sm py-2 px-3" />
+            </div>
+            <button onClick={fetchProducts} className="btn-primary w-full justify-center mt-3 text-sm py-2">
+              Применить
+            </button>
+            {(category_id || search || minPrice || maxPrice) && (
+              <button
+                onClick={() => { setParams({}); setMinPrice(''); setMaxPrice(''); setSearchInput(''); }}
+                className="w-full text-xs text-gray-500 hover:text-white mt-2 transition-colors"
+              >
+                Сбросить фильтры
+              </button>
+            )}
+          </div>
+        </aside>
+
+        {/* Main */}
+        <div className="flex-1 min-w-0">
+          <div className="flex gap-3 mb-5 flex-wrap">
+            <form onSubmit={handleSearch} className="flex-1 min-w-0 flex gap-2">
+              <input
+                type="text" value={searchInput} onChange={e => setSearchInput(e.target.value)}
+                placeholder="Поиск товаров..."
+                className="input-dark flex-1 text-sm"
+              />
+              <button type="submit" className="btn-primary py-2 px-4 text-sm">Найти</button>
+            </form>
+            <select
+              value={sort}
+              onChange={e => setParam('sort', e.target.value)}
+              className="input-dark text-sm w-auto min-w-[180px]"
+            >
+              {sortOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} />)}
+            </div>
+          ) : products.length === 0 ? (
+            <div className="text-center py-20 text-gray-500">
+              <div className="text-5xl mb-4">🔍</div>
+              <p className="text-lg">Товары не найдены</p>
+              <p className="text-sm mt-2">Попробуйте изменить фильтры</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {products.map(p => <ProductCard key={p.id} product={p} />)}
+              </div>
+              {totalPages > 1 && (
+                <div className="flex justify-center gap-2 mt-8">
+                  <button
+                    onClick={() => setParam('page', page - 1)}
+                    disabled={page <= 1}
+                    className="px-4 py-2 bg-navy-700 rounded-lg text-sm disabled:opacity-40 hover:bg-navy-600 transition-colors"
+                  >← Назад</button>
+                  <span className="px-4 py-2 text-sm text-gray-400">
+                    {page} / {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setParam('page', page + 1)}
+                    disabled={page >= totalPages}
+                    className="px-4 py-2 bg-navy-700 rounded-lg text-sm disabled:opacity-40 hover:bg-navy-600 transition-colors"
+                  >Далее →</button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
