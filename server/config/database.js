@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const base = process.env.DATABASE_URL
   ? {
-      url: process.env.DATABASE_URL,
+      use_env_variable: 'DATABASE_URL',
       dialect: 'postgres',
       logging: false,
       dialectOptions: {
