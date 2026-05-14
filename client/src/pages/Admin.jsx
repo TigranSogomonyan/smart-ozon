@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import http from '../api/axios';
 
-const TABS = ['Заявки продавцов', 'Пользователи', 'Категории', 'Заказы', 'Товары'];
+const TABS = ['Заявки продавцов', 'Пользователи', 'Магазины', 'Категории', 'Заказы', 'Товары'];
 
 const statusMap = { pending: 'Ожидает', paid: 'Оплачен', cancelled: 'Отменён' };
 const statusCls = {
@@ -25,7 +25,7 @@ function Table({ children }) {
 
 export default function Admin() {
   const [tab, setTab] = useState('Заявки продавцов');
-  const [data, setData] = useState({ requests: [], users: [], categories: [], orders: [], products: [] });
+  const [data, setData] = useState({ requests: [], users: [], shops: [], categories: [], orders: [], products: [] });
   const [catForm, setCatForm] = useState({ name: '', color: '#6C63FF' });
   const [editCat, setEditCat] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -33,14 +33,15 @@ export default function Admin() {
   async function load() {
     setLoading(true);
     try {
-      const [req, usr, cat, ord, prd] = await Promise.all([
+      const [req, usr, shp, cat, ord, prd] = await Promise.all([
         http.get('/admin/seller-requests'),
         http.get('/admin/users'),
+        http.get('/admin/shops'),
         http.get('/categories'),
         http.get('/admin/orders'),
         http.get('/admin/products'),
       ]);
-      setData({ requests: req.data, users: usr.data, categories: cat.data, orders: ord.data, products: prd.data });
+      setData({ requests: req.data, users: usr.data, shops: shp.data, categories: cat.data, orders: ord.data, products: prd.data });
     } catch {}
     setLoading(false);
   }
@@ -71,6 +72,12 @@ export default function Admin() {
   async function changeOrderStatus(id, status) {
     await http.put(`/admin/orders/${id}/status`, { status });
     setData(d => ({ ...d, orders: d.orders.map(o => o.id === id ? { ...o, status } : o) }));
+  }
+
+  async function deleteShop(id) {
+    if (!confirm('Удалить магазин и все его товары?')) return;
+    await http.delete(`/admin/shops/${id}`);
+    setData(d => ({ ...d, shops: d.shops.filter(s => s.id !== id) }));
   }
 
   async function deleteProduct(id) {
@@ -165,6 +172,33 @@ export default function Admin() {
                 </td>
                 <td className="px-4 py-3">
                   <button onClick={() => deleteUser(u.id)} className="px-2 py-0.5 text-xs text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded transition-colors">Удалить</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
+
+      {tab === 'Магазины' && (
+        <Table>
+          <thead><tr className="border-b border-white/5 text-gray-500 text-left">
+            <th className="px-5 py-3">Магазин</th><th className="px-4 py-3 hidden md:table-cell">Владелец</th><th className="px-4 py-3 hidden md:table-cell">Email</th><th className="px-4 py-3">Удалить</th>
+          </tr></thead>
+          <tbody className="divide-y divide-white/5">
+            {data.shops.map(s => (
+              <tr key={s.id} className="hover:bg-white/2">
+                <td className="px-5 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-navy-500 overflow-hidden shrink-0">
+                      {s.logo_url ? <img src={s.logo_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-white/20">{s.name?.[0]}</div>}
+                    </div>
+                    <span className="text-white text-sm truncate max-w-[180px]">{s.name}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 hidden md:table-cell text-gray-400 text-sm">{s.owner?.first_name} {s.owner?.last_name}</td>
+                <td className="px-4 py-3 hidden md:table-cell text-gray-500 text-xs">{s.owner?.email}</td>
+                <td className="px-4 py-3">
+                  <button onClick={() => deleteShop(s.id)} className="px-2 py-0.5 text-xs text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded transition-colors">Удалить</button>
                 </td>
               </tr>
             ))}

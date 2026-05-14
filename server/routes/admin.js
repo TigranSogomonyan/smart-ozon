@@ -91,6 +91,29 @@ router.put('/seller-requests/:id/reject', ...adminGuard, async (req, res) => {
   }
 });
 
+router.get('/shops', ...adminGuard, async (req, res) => {
+  try {
+    const shops = await Shop.findAll({
+      order: [['created_at', 'DESC']],
+      include: [{ model: User, as: 'owner', attributes: ['id', 'first_name', 'last_name', 'email'] }],
+    });
+    res.json(shops);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.delete('/shops/:id', ...adminGuard, async (req, res) => {
+  try {
+    const shop = await Shop.findByPk(req.params.id);
+    if (!shop) return res.status(404).json({ error: 'Магазин не найден' });
+    await shop.destroy();
+    res.json({ message: 'Магазин удалён' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/orders', ...adminGuard, async (req, res) => {
   try {
     const orders = await Order.findAll({
