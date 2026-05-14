@@ -12,7 +12,7 @@ router.post('/', auth, requireRole('seller', 'admin'), upload.single('logo'), as
     const { name, description } = req.body;
     if (!name) return res.status(400).json({ error: 'Название магазина обязательно' });
 
-    const logo_url = req.file ? `/uploads/${req.file.filename}` : null;
+    const logo_url = req.file ? (req.file.path || `/uploads/${req.file.filename}`) : null;
     const shop = await Shop.create({ user_id: req.user.id, name, description, logo_url });
     res.status(201).json(shop);
   } catch (err) {
@@ -44,7 +44,7 @@ router.put('/:id', auth, upload.single('logo'), async (req, res) => {
     }
     const { name, description } = req.body;
     const updates = { name, description };
-    if (req.file) updates.logo_url = `/uploads/${req.file.filename}`;
+    if (req.file) updates.logo_url = req.file.path || `/uploads/${req.file.filename}`;
     await shop.update(updates);
     res.json(shop);
   } catch (err) {

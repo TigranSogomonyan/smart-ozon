@@ -90,7 +90,7 @@ router.post('/', auth, requireRole('seller', 'admin'), upload.single('photo'), a
     if (!name || !price || !category_id) {
       return res.status(400).json({ error: 'Название, цена и категория обязательны' });
     }
-    const photo_url = req.file ? `/uploads/${req.file.filename}` : null;
+    const photo_url = req.file ? (req.file.path || `/uploads/${req.file.filename}`) : null;
     const product = await Product.create({
       shop_id: shop.id, name, description, price, weight, category_id, photo_url,
     });
@@ -114,7 +114,7 @@ router.put('/:id', auth, requireRole('seller', 'admin'), upload.single('photo'),
     }
     const { name, description, price, weight, category_id } = req.body;
     const updates = { name, description, price, weight, category_id };
-    if (req.file) updates.photo_url = `/uploads/${req.file.filename}`;
+    if (req.file) updates.photo_url = req.file.path || `/uploads/${req.file.filename}`;
     await product.update(updates);
     res.json(product);
   } catch (err) {
