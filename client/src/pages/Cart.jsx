@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import api from '../api/axios';
+import imgUrl from '../api/imgUrl';
 import useCartStore from '../stores/cartStore';
 
 export default function Cart() {
@@ -58,8 +59,8 @@ export default function Cart() {
               <div key={item.id} className="bg-navy-700 rounded-xl p-4 border border-white/5 flex items-center gap-4 card-glow">
                 <Link to={`/products/${product?.id}`} className="shrink-0">
                   <div className="w-20 h-20 rounded-lg overflow-hidden bg-navy-500">
-                    {product?.photo_url ? (
-                      <img src={product.photo_url} alt={product.name} className="w-full h-full object-cover" />
+                    {imgUrl(product?.photo_url) ? (
+                      <img src={imgUrl(product.photo_url)} alt={product.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-xl font-bold text-white/20"
                         style={{ background: cat ? `linear-gradient(135deg, ${cat.color}22, ${cat.color}44)` : '' }}>

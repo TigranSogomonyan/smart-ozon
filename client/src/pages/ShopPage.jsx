@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../api/axios';
+import imgUrl from '../api/imgUrl';
 import ProductCard from '../components/ProductCard';
 
 export default function ShopPage() {
@@ -39,8 +40,8 @@ export default function ShopPage() {
     <div className="page-fade max-w-6xl mx-auto px-6 py-10">
       <div className="bg-navy-700 rounded-2xl p-8 border border-white/5 mb-10 flex flex-col sm:flex-row items-center sm:items-start gap-6">
         <div className="w-20 h-20 rounded-2xl bg-navy-500 overflow-hidden shrink-0 flex items-center justify-center text-3xl font-bold text-white/30">
-          {shop.logo_url ? (
-            <img src={shop.logo_url} alt={shop.name} className="w-full h-full object-cover" />
+          {imgUrl(shop.logo_url) ? (
+            <img src={imgUrl(shop.logo_url)} alt={shop.name} className="w-full h-full object-cover" />
           ) : shop.name?.[0]}
         </div>
         <div className="flex-1 text-center sm:text-left">

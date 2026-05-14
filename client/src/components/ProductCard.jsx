@@ -3,6 +3,7 @@ import { useState } from 'react';
 import useAuthStore from '../stores/authStore';
 import useFavoritesStore from '../stores/favoritesStore';
 import useCartStore from '../stores/cartStore';
+import imgUrl from '../api/imgUrl';
 
 export default function ProductCard({ product }) {
   const { user } = useAuthStore();
@@ -33,16 +34,16 @@ export default function ProductCard({ product }) {
       <div className="bg-navy-700 rounded-xl overflow-hidden card-glow flex flex-col h-full">
         {/* Image */}
         <div className="relative aspect-square overflow-hidden">
-          {product.photo_url ? (
+          {imgUrl(product.photo_url) ? (
             <img
-              src={product.photo_url}
+              src={imgUrl(product.photo_url)}
               alt={product.name}
               className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
               onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
             />
           ) : null}
           <div
-            className={`w-full h-full items-center justify-center text-4xl font-bold text-white/20 ${product.photo_url ? 'hidden' : 'flex'}`}
+            className={`w-full h-full items-center justify-center text-4xl font-bold text-white/20 ${imgUrl(product.photo_url) ? 'hidden' : 'flex'}`}
             style={{ background: `linear-gradient(135deg, ${catColor}22, ${catColor}55)` }}
           >
             {product.name.charAt(0)}

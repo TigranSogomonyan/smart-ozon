@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import http from '../api/axios';
+import imgUrl from '../api/imgUrl';
 
 const TABS = ['Заявки продавцов', 'Пользователи', 'Магазины', 'Категории', 'Заказы', 'Товары'];
 
@@ -190,7 +191,7 @@ export default function Admin() {
                 <td className="px-5 py-3">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg bg-navy-500 overflow-hidden shrink-0">
-                      {s.logo_url ? <img src={s.logo_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-white/20">{s.name?.[0]}</div>}
+                      {imgUrl(s.logo_url) ? <img src={imgUrl(s.logo_url)} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-white/20">{s.name?.[0]}</div>}
                     </div>
                     <span className="text-white text-sm truncate max-w-[180px]">{s.name}</span>
                   </div>
@@ -298,7 +299,7 @@ export default function Admin() {
                 <td className="px-5 py-3">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg bg-navy-500 overflow-hidden shrink-0">
-                      {p.photo_url ? <img src={p.photo_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-white/20">{p.name[0]}</div>}
+                      {imgUrl(p.photo_url) ? <img src={imgUrl(p.photo_url)} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-white/20">{p.name[0]}</div>}
                     </div>
                     <span className="text-white text-sm truncate max-w-[180px]">{p.name}</span>
                   </div>

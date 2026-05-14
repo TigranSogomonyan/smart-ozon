@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import imgUrl from '../api/imgUrl';
 
 const tabs = ['Магазин', 'Товары', 'Заказы'];
 const statusMap = { pending: 'Ожидает', paid: 'Оплачен', cancelled: 'Отменён' };
@@ -115,7 +116,7 @@ export default function MyShop() {
             </div>
             <div>
               <label className="block text-sm text-gray-400 mb-1.5">Логотип</label>
-              {shop?.logo_url && <img src={shop.logo_url} alt="logo" className="w-16 h-16 rounded-lg object-cover mb-2" />}
+              {imgUrl(shop?.logo_url) && <img src={imgUrl(shop.logo_url)} alt="logo" className="w-16 h-16 rounded-lg object-cover mb-2" />}
               <input type="file" accept="image/*" onChange={e => setLogoFile(e.target.files[0])} className="input-dark text-sm" />
             </div>
             {shopErr && <p className="text-red-400 text-sm">{shopErr}</p>}
@@ -155,7 +156,7 @@ export default function MyShop() {
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg bg-navy-500 overflow-hidden shrink-0">
-                            {p.photo_url ? <img src={p.photo_url} alt={p.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-white/30">{p.name[0]}</div>}
+                            {imgUrl(p.photo_url) ? <img src={imgUrl(p.photo_url)} alt={p.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-white/30">{p.name[0]}</div>}
                           </div>
                           <span className="font-medium text-white truncate max-w-[200px]">{p.name}</span>
                         </div>

@@ -94,7 +94,7 @@ router.put('/seller-requests/:id/reject', ...adminGuard, async (req, res) => {
 router.get('/shops', ...adminGuard, async (req, res) => {
   try {
     const shops = await Shop.findAll({
-      order: [['created_at', 'DESC']],
+      order: [['name', 'ASC']],
       include: [{ model: User, as: 'owner', attributes: ['id', 'first_name', 'last_name', 'email'] }],
     });
     res.json(shops);

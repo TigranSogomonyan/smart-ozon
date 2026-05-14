@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axios';
+import imgUrl from '../api/imgUrl';
 import useAuthStore from '../stores/authStore';
 import useCartStore from '../stores/cartStore';
 import useFavoritesStore from '../stores/favoritesStore';
@@ -81,8 +82,8 @@ export default function ProductPage() {
       <div className="grid md:grid-cols-2 gap-10">
         <div className="relative">
           <div className="rounded-2xl overflow-hidden bg-navy-700 border border-white/5 aspect-square">
-            {product.photo_url ? (
-              <img src={product.photo_url} alt={product.name} className="w-full h-full object-cover" />
+            {imgUrl(product.photo_url) ? (
+              <img src={imgUrl(product.photo_url)} alt={product.name} className="w-full h-full object-cover" />
             ) : (
               <div
                 className="w-full h-full flex items-center justify-center text-6xl font-bold text-white/10"
@@ -146,8 +147,8 @@ export default function ProductPage() {
               className="flex items-center gap-3 p-4 bg-navy-700 rounded-xl border border-white/5 hover:border-coral-500/30 transition-colors"
             >
               <div className="w-10 h-10 rounded-lg bg-navy-500 flex items-center justify-center text-white font-bold">
-                {product.shop.logo_url ? (
-                  <img src={product.shop.logo_url} alt={product.shop.name} className="w-full h-full object-cover rounded-lg" />
+                {imgUrl(product.shop.logo_url) ? (
+                  <img src={imgUrl(product.shop.logo_url)} alt={product.shop.name} className="w-full h-full object-cover rounded-lg" />
                 ) : product.shop.name?.[0]}
               </div>
               <div>

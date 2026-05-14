@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
+import imgUrl from '../api/imgUrl';
 
 const statusMap = {
   pending: { label: 'Ожидает оплаты', cls: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30' },
@@ -120,8 +121,8 @@ export default function OrderDetail() {
           {order.items?.map(item => (
             <div key={item.id} className="flex items-center gap-4 px-5 py-4">
               <div className="w-12 h-12 rounded-lg bg-navy-500 overflow-hidden shrink-0">
-                {item.product?.photo_url ? (
-                  <img src={item.product.photo_url} alt={item.product.name} className="w-full h-full object-cover" />
+                {imgUrl(item.product?.photo_url) ? (
+                  <img src={imgUrl(item.product.photo_url)} alt={item.product.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-white/30 font-bold">
                     {item.product?.name?.[0]}
