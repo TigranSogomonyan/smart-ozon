@@ -44,8 +44,10 @@ api.interceptors.response.use(
         return api(original);
       } catch (err) {
         processQueue(err, null);
-        useAuthStore.getState().logout();
-        window.location.href = '/login';
+        if (err?.response?.status === 401) {
+          useAuthStore.getState().logout();
+          window.location.href = '/login';
+        }
         return Promise.reject(err);
       } finally {
         isRefreshing = false;
