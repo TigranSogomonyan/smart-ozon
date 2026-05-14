@@ -10,7 +10,13 @@ function saveUser(user) {
   try { localStorage.setItem('auth_user', JSON.stringify(user)); } catch {}
 }
 function clearUser() {
-  try { localStorage.removeItem('auth_user'); } catch {}
+  try { localStorage.removeItem('auth_user'); localStorage.removeItem('auth_refresh'); } catch {}
+}
+function loadRefresh() {
+  try { return localStorage.getItem('auth_refresh') || null; } catch { return null; }
+}
+function saveRefresh(token) {
+  try { if (token) localStorage.setItem('auth_refresh', token); } catch {}
 }
 
 const stored = loadUser();
@@ -25,6 +31,7 @@ const useAuthStore = create((set) => ({
   login: async (email, password) => {
     const { data } = await axios.post(`${BASE}/api/auth/login`, { email, password }, { withCredentials: true });
     saveUser(data.user);
+    saveRefresh(data.refreshToken);
     set({ user: data.user, accessToken: data.accessToken });
     return data;
   },
@@ -32,6 +39,7 @@ const useAuthStore = create((set) => ({
   register: async (formData) => {
     const { data } = await axios.post(`${BASE}/api/auth/register`, formData, { withCredentials: true });
     saveUser(data.user);
+    saveRefresh(data.refreshToken);
     set({ user: data.user, accessToken: data.accessToken });
     return data;
   },
@@ -46,8 +54,14 @@ const useAuthStore = create((set) => ({
 
   fetchMe: async () => {
     try {
-      const { data: refreshData } = await axios.post(`${BASE}/api/auth/refresh`, {}, { withCredentials: true });
+      const storedRefresh = loadRefresh();
+      const { data: refreshData } = await axios.post(
+        `${BASE}/api/auth/refresh`,
+        storedRefresh ? { refreshToken: storedRefresh } : {},
+        { withCredentials: true }
+      );
       if (!refreshData?.accessToken) throw new Error('no token');
+      saveRefresh(refreshData.refreshToken);
       set({ accessToken: refreshData.accessToken });
       const { data: user } = await axios.get(`${BASE}/api/users/me`, {
         headers: { Authorization: `Bearer ${refreshData.accessToken}` },

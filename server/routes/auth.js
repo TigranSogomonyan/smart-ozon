@@ -43,7 +43,7 @@ router.post('/register', async (req, res) => {
     const refreshToken = signRefresh(user);
     res.cookie('refreshToken', refreshToken, COOKIE_OPTS);
     res.status(201).json({
-      accessToken,
+      accessToken, refreshToken,
       user: { id: user.id, first_name: user.first_name, last_name: user.last_name, email: user.email, role: user.role, seller_request: user.seller_request },
     });
   } catch (err) {
@@ -66,7 +66,7 @@ router.post('/login', async (req, res) => {
     const refreshToken = signRefresh(user);
     res.cookie('refreshToken', refreshToken, COOKIE_OPTS);
     res.json({
-      accessToken,
+      accessToken, refreshToken,
       user: { id: user.id, first_name: user.first_name, last_name: user.last_name, email: user.email, role: user.role, seller_request: user.seller_request },
     });
   } catch (err) {
@@ -76,7 +76,7 @@ router.post('/login', async (req, res) => {
 
 router.post('/refresh', async (req, res) => {
   try {
-    const token = req.cookies.refreshToken;
+    const token = req.cookies.refreshToken || req.body.refreshToken;
     if (!token) return res.status(401).json({ error: 'Нет refresh токена' });
 
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
@@ -86,7 +86,7 @@ router.post('/refresh', async (req, res) => {
     const accessToken = signAccess(user);
     const refreshToken = signRefresh(user);
     res.cookie('refreshToken', refreshToken, COOKIE_OPTS);
-    res.json({ accessToken });
+    res.json({ accessToken, refreshToken });
   } catch {
     res.status(401).json({ error: 'Недействительный refresh токен' });
   }

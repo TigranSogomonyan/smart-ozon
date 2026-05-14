@@ -37,7 +37,9 @@ api.interceptors.response.use(
       original._retry = true;
       isRefreshing = true;
       try {
-        const { data } = await axios.post(`${BASE}/api/auth/refresh`, {}, { withCredentials: true });
+        const storedRefresh = (() => { try { return localStorage.getItem('auth_refresh'); } catch { return null; } })();
+        const { data } = await axios.post(`${BASE}/api/auth/refresh`, storedRefresh ? { refreshToken: storedRefresh } : {}, { withCredentials: true });
+        if (data.refreshToken) { try { localStorage.setItem('auth_refresh', data.refreshToken); } catch {} }
         useAuthStore.getState().setAccessToken(data.accessToken);
         processQueue(null, data.accessToken);
         original.headers.Authorization = `Bearer ${data.accessToken}`;
