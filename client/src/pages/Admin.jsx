@@ -62,6 +62,12 @@ export default function Admin() {
     setData(d => ({ ...d, users: d.users.map(u => u.id === id ? { ...u, role } : u) }));
   }
 
+  async function deleteUser(id) {
+    if (!confirm('Удалить пользователя? Это действие необратимо.')) return;
+    await http.delete(`/admin/users/${id}`);
+    setData(d => ({ ...d, users: d.users.filter(u => u.id !== id) }));
+  }
+
   async function changeOrderStatus(id, status) {
     await http.put(`/admin/orders/${id}/status`, { status });
     setData(d => ({ ...d, orders: d.orders.map(o => o.id === id ? { ...o, status } : o) }));
@@ -140,7 +146,7 @@ export default function Admin() {
       {tab === 'Пользователи' && (
         <Table>
           <thead><tr className="border-b border-white/5 text-gray-500 text-left">
-            <th className="px-5 py-3">Пользователь</th><th className="px-4 py-3">Email</th><th className="px-4 py-3">Роль</th><th className="px-4 py-3">Изменить роль</th>
+            <th className="px-5 py-3">Пользователь</th><th className="px-4 py-3">Email</th><th className="px-4 py-3">Роль</th><th className="px-4 py-3">Изменить роль</th><th className="px-4 py-3">Удалить</th>
           </tr></thead>
           <tbody className="divide-y divide-white/5">
             {data.users.map(u => (
@@ -156,6 +162,9 @@ export default function Admin() {
                     <option value="seller">seller</option>
                     <option value="admin">admin</option>
                   </select>
+                </td>
+                <td className="px-4 py-3">
+                  <button onClick={() => deleteUser(u.id)} className="px-2 py-0.5 text-xs text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded transition-colors">Удалить</button>
                 </td>
               </tr>
             ))}

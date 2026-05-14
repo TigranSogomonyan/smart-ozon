@@ -32,6 +32,20 @@ router.put('/users/:id/role', ...adminGuard, async (req, res) => {
   }
 });
 
+router.delete('/users/:id', ...adminGuard, async (req, res) => {
+  try {
+    if (req.params.id === req.user.id) {
+      return res.status(400).json({ error: 'Нельзя удалить самого себя' });
+    }
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
+    await user.destroy();
+    res.json({ message: 'Пользователь удалён' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/seller-requests', ...adminGuard, async (req, res) => {
   try {
     const users = await User.findAll({
