@@ -38,6 +38,7 @@ app.use('/api/orders', require('./routes/orders'));
 app.use('/api/seller', require('./routes/seller'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/payments', require('./routes/payments'));
+app.use('/api/search/smart', require('./routes/smartSearch'));
 
 app.use(require('./middleware/errorHandler'));
 

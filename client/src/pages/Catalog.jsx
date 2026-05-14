@@ -24,6 +24,10 @@ export default function Catalog() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [smartMode, setSmartMode] = useState(false);
+  const [smartLoading, setSmartLoading] = useState(false);
+  const [smartResults, setSmartResults] = useState(null);
+  const [smartQuery, setSmartQuery] = useState('');
 
   const search = params.get('search') || '';
   const category_id = params.get('category_id') || '';
@@ -68,7 +72,31 @@ export default function Catalog() {
 
   function handleSearch(e) {
     e.preventDefault();
-    setParam('search', searchInput);
+    if (smartMode) {
+      handleSmartSearch();
+    } else {
+      setParam('search', searchInput);
+    }
+  }
+
+  async function handleSmartSearch() {
+    if (!searchInput.trim()) return;
+    setSmartLoading(true);
+    setSmartResults(null);
+    setSmartQuery(searchInput.trim());
+    try {
+      const { data } = await api.post('/search/smart', { query: searchInput.trim() });
+      setSmartResults(Array.isArray(data) ? data : []);
+    } catch {
+      setSmartResults([]);
+    }
+    setSmartLoading(false);
+  }
+
+  function exitSmartMode() {
+    setSmartMode(false);
+    setSmartResults(null);
+    setSmartQuery('');
   }
 
   function toggleCategory(id) {
@@ -142,23 +170,76 @@ export default function Catalog() {
         <div className="flex-1 min-w-0">
           <div className="flex gap-3 mb-5 flex-wrap">
             <form onSubmit={handleSearch} className="flex-1 min-w-0 flex gap-2">
-              <input
-                type="text" value={searchInput} onChange={e => setSearchInput(e.target.value)}
-                placeholder="Поиск товаров..."
-                className="input-dark flex-1 text-sm"
-              />
-              <button type="submit" className="btn-primary py-2 px-4 text-sm">Найти</button>
+              <div className="relative flex-1">
+                <input
+                  type="text" value={searchInput} onChange={e => setSearchInput(e.target.value)}
+                  placeholder={smartMode ? 'Опишите что ищете: "подарок маме до 2000₽"...' : 'Поиск товаров...'}
+                  className={`input-dark w-full text-sm ${smartMode ? 'border-violet-500/50 focus:border-violet-500' : ''}`}
+                />
+                {smartMode && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-violet-400 text-xs font-medium pointer-events-none">ИИ</span>
+                )}
+              </div>
+              <button type="submit" disabled={smartLoading} className={`py-2 px-4 text-sm rounded-lg font-medium transition-all ${smartMode ? 'bg-violet-600 hover:bg-violet-500 text-white' : 'btn-primary'}`}>
+                {smartLoading ? (
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Думаю...
+                  </span>
+                ) : 'Найти'}
+              </button>
             </form>
-            <select
-              value={sort}
-              onChange={e => setParam('sort', e.target.value)}
-              className="input-dark text-sm w-auto min-w-[180px]"
+            <button
+              type="button"
+              onClick={() => { setSmartMode(v => !v); setSmartResults(null); setSmartQuery(''); }}
+              className={`py-2 px-4 text-sm rounded-lg font-medium border transition-all whitespace-nowrap ${smartMode ? 'bg-violet-500/20 border-violet-500/50 text-violet-300' : 'border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}
             >
-              {sortOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
+              ✨ Умный поиск
+            </button>
+            {!smartMode && (
+              <select
+                value={sort}
+                onChange={e => setParam('sort', e.target.value)}
+                className="input-dark text-sm w-auto min-w-[160px]"
+              >
+                {sortOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            )}
           </div>
 
-          {loading ? (
+          {/* Smart search results */}
+          {smartMode && smartResults !== null && (
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center gap-2 text-violet-400 text-sm font-medium">
+                  <span className="text-base">✨</span>
+                  Умный поиск: <span className="text-white">"{smartQuery}"</span>
+                </div>
+                <span className="text-gray-500 text-sm">— найдено {smartResults.length} товаров</span>
+                <button onClick={exitSmartMode} className="ml-auto text-xs text-gray-500 hover:text-white transition-colors">✕ Обычный поиск</button>
+              </div>
+              {smartResults.length === 0 ? (
+                <div className="text-center py-16 text-gray-500">
+                  <div className="text-4xl mb-3">🤔</div>
+                  <p>ИИ не нашёл подходящих товаров</p>
+                  <p className="text-sm mt-1">Попробуйте переформулировать запрос</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {smartResults.map(p => <ProductCard key={p.id} product={p} />)}
+                </div>
+              )}
+            </div>
+          )}
+
+          {smartMode && smartResults === null && !smartLoading && (
+            <div className="mb-6 p-4 bg-violet-500/10 border border-violet-500/20 rounded-xl text-center">
+              <p className="text-violet-300 text-sm">Опишите что ищете своими словами — ИИ подберёт подходящие товары</p>
+              <p className="text-gray-500 text-xs mt-1">Например: "недорогой подарок для мамы", "спорт для зала", "что-то для кухни"</p>
+            </div>
+          )}
+
+          {(smartMode && (smartResults !== null || smartLoading)) ? null : loading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} />)}
             </div>
