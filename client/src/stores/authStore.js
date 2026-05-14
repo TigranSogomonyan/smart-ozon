@@ -56,9 +56,13 @@ const useAuthStore = create((set) => ({
       if (!user?.id) throw new Error('no user');
       saveUser(user);
       set({ user, loading: false });
-    } catch {
-      clearUser();
-      set({ user: null, loading: false });
+    } catch (err) {
+      if (err?.response?.status === 401) {
+        clearUser();
+        set({ user: null, loading: false });
+      } else {
+        set({ loading: false });
+      }
     }
   },
 
