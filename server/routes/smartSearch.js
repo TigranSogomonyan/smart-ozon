@@ -39,7 +39,7 @@ ${productList}
 Если ничего не подходит — верни [].`;
 
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,9 +48,9 @@ ${productList}
     );
 
     if (!geminiRes.ok) {
-      const err = await geminiRes.text();
-      console.error('Gemini error:', err);
-      return res.status(502).json({ error: 'Ошибка Gemini API' });
+      const errText = await geminiRes.text();
+      console.error('Gemini error:', errText);
+      return res.status(502).json({ error: `Gemini API: ${errText}` });
     }
 
     const geminiData = await geminiRes.json();
