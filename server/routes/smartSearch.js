@@ -1,6 +1,16 @@
 const router = require('express').Router();
 const { Product, Category, Shop } = require('../models');
 
+function parsePriceLimits(query) {
+  const q = query.toLowerCase();
+  let min = null, max = null;
+  const maxMatch = q.match(/(?:до|не дороже|дешевле|максимум|макс\.?)\s*(\d[\d\s]*\d|\d+)/);
+  if (maxMatch) max = parseInt(maxMatch[1].replace(/\s/g, ''));
+  const minMatch = q.match(/(?:от|не дешевле|дороже|минимум|мин\.?)\s*(\d[\d\s]*\d|\d+)/);
+  if (minMatch) min = parseInt(minMatch[1].replace(/\s/g, ''));
+  return { min, max };
+}
+
 router.post('/', async (req, res) => {
   const { query } = req.body;
   if (!query || !query.trim()) return res.status(400).json({ error: 'Запрос не может быть пустым' });
@@ -79,7 +89,11 @@ ${productList}
     });
 
     const fullMap = new Map(full.map(p => [p.id, p]));
-    const ordered = ids.map(id => fullMap.get(id)).filter(Boolean);
+    let ordered = ids.map(id => fullMap.get(id)).filter(Boolean);
+
+    const { min, max } = parsePriceLimits(query.trim());
+    if (min !== null) ordered = ordered.filter(p => Number(p.price) >= min);
+    if (max !== null) ordered = ordered.filter(p => Number(p.price) <= max);
 
     res.json(ordered);
   } catch (err) {
