@@ -107,8 +107,9 @@ router.delete('/shops/:id', ...adminGuard, async (req, res) => {
   try {
     const shop = await Shop.findByPk(req.params.id);
     if (!shop) return res.status(404).json({ error: 'Магазин не найден' });
+    await Product.destroy({ where: { shop_id: shop.id } });
     await shop.destroy();
-    res.json({ message: 'Магазин удалён' });
+    res.json({ message: 'Магазин и его товары удалены' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
