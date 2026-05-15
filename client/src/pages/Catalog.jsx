@@ -28,6 +28,7 @@ export default function Catalog() {
   const [smartLoading, setSmartLoading] = useState(false);
   const [smartResults, setSmartResults] = useState(null);
   const [smartQuery, setSmartQuery] = useState('');
+  const [smartError, setSmartError] = useState('');
 
   const search = params.get('search') || '';
   const category_id = params.get('category_id') || '';
@@ -83,11 +84,13 @@ export default function Catalog() {
     if (!searchInput.trim()) return;
     setSmartLoading(true);
     setSmartResults(null);
+    setSmartError('');
     setSmartQuery(searchInput.trim());
     try {
       const { data } = await api.post('/search/smart', { query: searchInput.trim() });
       setSmartResults(Array.isArray(data) ? data : []);
-    } catch {
+    } catch (err) {
+      setSmartError(err.response?.data?.error || 'Ошибка подключения к ИИ');
       setSmartResults([]);
     }
     setSmartLoading(false);
@@ -97,6 +100,7 @@ export default function Catalog() {
     setSmartMode(false);
     setSmartResults(null);
     setSmartQuery('');
+    setSmartError('');
   }
 
   function toggleCategory(id) {
@@ -220,9 +224,18 @@ export default function Catalog() {
               </div>
               {smartResults.length === 0 ? (
                 <div className="text-center py-16 text-gray-500">
-                  <div className="text-4xl mb-3">🤔</div>
-                  <p>ИИ не нашёл подходящих товаров</p>
-                  <p className="text-sm mt-1">Попробуйте переформулировать запрос</p>
+                  <div className="text-4xl mb-3">{smartError ? '⚠️' : '🤔'}</div>
+                  {smartError ? (
+                    <>
+                      <p className="text-red-400">Ошибка умного поиска</p>
+                      <p className="text-xs mt-2 text-red-400/70 max-w-md mx-auto break-all">{smartError}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>ИИ не нашёл подходящих товаров</p>
+                      <p className="text-sm mt-1">Попробуйте переформулировать запрос</p>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
