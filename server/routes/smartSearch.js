@@ -86,7 +86,7 @@ ${productList}
     res.json(ordered);
   } catch (err) {
     console.error('Smart search error:', err);
-    res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    res.status(500).json({ error: err.message || 'Внутренняя ошибка сервера' });
   }
 });
 
